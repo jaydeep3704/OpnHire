@@ -5,6 +5,7 @@ import Image from "next/image"
 import { useState } from "react"
 import UserTypeForm from "./UserTypeForm"
 import CompanyForm from "./CompanyForm"
+import JobSeekerForm from "./JobSeekerForm"
 
 export type UserSelectionType="company" | "jobSeeker" | null
 
@@ -21,7 +22,7 @@ const OnBoardingForm = () => {
             case 1:
                 return <UserTypeForm onSelect={handleUserTypeSelection}/>
             case 2:
-                return userType=="company" ? (<CompanyForm/>) : <p>User is an individual</p>
+                return userType=="company" ? (<CompanyForm/>) : <JobSeekerForm/>
             default:
                 return null
         }
@@ -33,7 +34,7 @@ const OnBoardingForm = () => {
             <Image src={Logo} alt="opn hire logo" width={50} height={50}/>
             <h1 className="text-4xl font-bold">Opn<span className="text-primary">Hire</span></h1>
         </div>
-        <Card className="max-w-lg w-full">
+        <Card className="max-w-lg w-full md:min-w-lg">
             <CardContent className="p-6">
                 {renderStep()}
             </CardContent>
