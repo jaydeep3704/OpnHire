@@ -7,6 +7,9 @@ import { ThemeToggle } from './ThemeToggle'
 import { auth } from '@/utils/auth'
 import { redirect } from 'next/navigation'
 import { signOut } from '@/utils/auth'
+import UserDropDown from './UserDropDown'
+
+
 const Navbar = async () => {
 
     const session=await auth()
@@ -19,20 +22,16 @@ const Navbar = async () => {
                 <h1 className='text-2xl font-bold '>Opn<span className='text-primary'>Hire</span></h1>
             </Link>
 
-            <div className='flex items-center gap-4'>
-                <ThemeToggle />
+            <div className='flex items-center gap-5'>
+                <ThemeToggle/>
+                 <Link href={"post-job"} className={buttonVariants({size:'lg'})}>Post Job</Link>
                 {
-                    session?.user ? ( 
-                        <form action={async ()=>{
-                            "use server"
-                            await signOut()
-                            return redirect('/')
-                        }}>
-                            <Button className='text-white' >Logout</Button>
-                        </form>
-                ) : <Link className={buttonVariants({variant:'outline',size:'lg'})} href={'/login'}  >Login</Link>
+                    session?.user? <UserDropDown/> : (
+                        <Link href={'/login'} className={buttonVariants({variant:"outline",size:"lg"})}>
+                            Login
+                        </Link>
+                    )
                 }
-               
             </div>
 
         </nav>
