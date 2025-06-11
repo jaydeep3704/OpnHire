@@ -48,7 +48,8 @@ model Company {
   user      User  @relation(fields: [userId],references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+  JobPost  JobPost[]
+
 }
 
 model JobSeeker{
@@ -100,4 +101,28 @@ model VerificationToken {
   expires    DateTime
 
   @@id([identifier, token])
+}
+
+
+model JobPost{
+  id String @id @default(uuid())
+  jobTitle String
+  employmentType String
+  location String
+  salaryFrom Int
+  salaryTo   Int
+  jobDescription String
+  listingDuration Int
+  benefits String[]
+  companyId String
+  Company Company @relation(fields: [companyId],references: [id])
+  status JobPostStatus @default(DRAFT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum JobPostStatus{
+  DRAFT
+  ACTIVE
+  EXPIRED
 }
