@@ -7,6 +7,8 @@ import { companySchema, jobSchema, jobSeekerSchema } from "./zodSchema";
 import { prisma } from "./db";
 import arcjet, { detectBot, shield } from "./arcjet";
 import { request } from "@arcjet/next";
+import { stripe } from "./stripe";
+import { jobListingDurationPricing } from "./jobListingDurationSelector";
 
 
 const aj = arcjet.withRule(
@@ -30,7 +32,7 @@ export async function createCompany(data: z.infer<typeof companySchema>) {
         throw new Error("Forbidden")
     }
 
-    const validateData = companySchema.parse(data);
+    const validatedData = companySchema.parse(data);
     await prisma.user.update({
         where: {
             id: session.id
@@ -40,12 +42,12 @@ export async function createCompany(data: z.infer<typeof companySchema>) {
             userType: "COMPANY",
             company: {
                 create: {
-                    about: validateData.about,
-                    location: validateData.location,
-                    logo: validateData.logo,
-                    name: validateData.name,
-                    website: validateData.website,
-                    xAccount: validateData.xAccount ?? null
+                    about: validatedData.about,
+                    location: validatedData.location,
+                    logo: validatedData.logo,
+                    name: validatedData.name,
+                    website: validatedData.website,
+                    xAccount: validatedData.xAccount ?? null
                 }
             }
         }
@@ -57,7 +59,7 @@ export async function createCompany(data: z.infer<typeof companySchema>) {
 
 export async function createJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
     const user = await requireUser()
-    const validateData = jobSeekerSchema.parse(data);
+    const validatedData = jobSeekerSchema.parse(data);
     const req = await request()
     const decision = await aj.protect(req)
     if (decision.isDenied()) {
@@ -72,9 +74,9 @@ export async function createJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
             userType: "JOB_SEEKER",
             jobSeeker: {
                 create: {
-                    name: validateData.name,
-                    about: validateData.about,
-                    resume: validateData.resume
+                    name: validatedData.name,
+                    about: validatedData.about,
+                    resume: validatedData.resume
                 }
             }
         }
@@ -85,7 +87,7 @@ export async function createJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
 
 export async function createJob(data: z.infer<typeof jobSchema>) {
     const user = await requireUser()
-    const validateData = jobSchema.parse(data);
+    const validatedData = jobSchema.parse(data);
     const req = await request()
     const decision = await aj.protect(req)
     if (decision.isDenied()) {
@@ -96,29 +98,89 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
             userId:user.id
         },
         select:{
-            id:true
+            id:true,
+            user:{
+                select:{
+                    stripeCustomerId:true
+                }
+            }
+            
         }
     })
+
+
     
     if(!company?.id){
         return redirect("/")
     }
 
+    let stripeCustomerId=company.user.stripeCustomerId
+    if(!stripeCustomerId){
+        const customer=await stripe.customers.create({
+            email:user.email,
+            name:user.name
+        })
+        stripeCustomerId=customer.id
+        //update use with customer id
+        await prisma.user.update({
+            where:{
+                id:user.id
+            },
+            data:{
+                stripeCustomerId:stripeCustomerId
+            }
+        })
+    }
 
-    await prisma.jobPost.create({
+   const job= await prisma.jobPost.create({
         data:{
-            jobTitle:validateData.jobTitle,
-            jobDescription:validateData.jobDescription,
-            employmentType:validateData.employmentType,
-            location:validateData.location,
-            salaryFrom:validateData.salaryFrom,
-            salaryTo:validateData.salaryTo,
-            listingDuration:validateData.listingDuration,
-            benefits:validateData.benefits,
+            jobTitle:validatedData.jobTitle,
+            jobDescription:validatedData.jobDescription,
+            employmentType:validatedData.employmentType,
+            location:validatedData.location,
+            salaryFrom:validatedData.salaryFrom,
+            salaryTo:validatedData.salaryTo,
+            listingDuration:validatedData.listingDuration,
+            benefits:validatedData.benefits,
             companyId:company.id,
+        },
+        select:{
+            id:true
         }
     })
-    
-    return redirect("/")
 
+    const pricingTier=jobListingDurationPricing.find((tier)=>tier.days===validatedData.listingDuration)
+    if(!pricingTier){
+        throw new Error("Invalid Listing Duration")
+    }    
+
+    const session=await stripe.checkout.sessions.create({
+        customer:stripeCustomerId,
+        line_items:[
+            {
+                price_data:{
+                    product_data:{
+                        name:`Job Posting - ${pricingTier.days} Days`,
+                        description:pricingTier.description,
+                        images:[
+                            "https://7kf49zim2e.ufs.sh/f/AZ2bzpFK1goDc2sAPVWBTgM8XE74obUVJK6ZepvudwasqDt0"
+                        ]
+                    },
+                    currency:'USD',
+                    unit_amount:pricingTier.price*100,
+                },
+                quantity:1,
+            }
+        ],
+        metadata:{
+            jobId:job.id
+        },
+        mode:'payment',
+        success_url:`${process.env.NEXT_PUBLIC_URL}/payment/success`,
+        cancel_url:`${process.env.NEXT_PUBLIC_URL}/payment/cancel`
+    })
+
+    return redirect(session.url as string)
 }
+
+

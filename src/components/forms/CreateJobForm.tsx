@@ -57,6 +57,7 @@ export function CreateJobForm({companyAbout,companyLocation,companyLogo,companyN
     const [pending,setPending]=useState<boolean>(false)
 
     async function onSubmit(data: z.infer<typeof jobSchema>) {
+        console.log(data)
         try {
             setPending(true)
             await createJob(data)
