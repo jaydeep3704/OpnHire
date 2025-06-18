@@ -12,7 +12,7 @@ interface iAppProps{
 
 export function JobDescriptionEditor({field}:iAppProps){
 
-    const editor=useEditor(
+     const editor=useEditor(
         {
             extensions:[
                 StarterKit,

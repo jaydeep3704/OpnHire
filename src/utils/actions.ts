@@ -66,7 +66,8 @@ export async function createJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
     if (decision.isDenied()) {
         throw new Error("Forbidden")
     }
-    await prisma.user.update({
+    
+    const jobSeeker=await prisma.user.update({
         where: {
             id: user.id as string
         },
@@ -80,6 +81,14 @@ export async function createJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
                     resume: validatedData.resume
                 }
             }
+        }
+    })
+
+    await inngest.send({
+        name:"jobseeker/created",
+        data:{
+            userId:user.id,
+            email:user.email
         }
     })
     return redirect("/")
