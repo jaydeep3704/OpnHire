@@ -51,7 +51,6 @@ export async function JobListings() {
                                 <JobCard 
                                 job={job} 
                                 key={job.id}
-
                                 />
                             ))
                         }

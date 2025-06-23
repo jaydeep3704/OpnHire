@@ -10,6 +10,7 @@ import { request } from "@arcjet/next";
 import { stripe } from "./stripe";
 import { jobListingDurationPricing } from "./jobListingDurationSelector";
 import { inngest } from "./inngest/client";
+import { revalidatePath } from "next/cache";
 
 
 const aj = arcjet.withRule(
@@ -201,3 +202,99 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
 }
 
 
+export async function saveJobPost(jobId:string){
+    const user=await requireUser();
+    const req=await request();
+    const decision=await aj.protect(req)
+    if(decision.isDenied()){
+        throw new Error("Forbidden")
+    }
+    
+    await prisma.savedJobPost.create({
+        data:{
+            jobPostId:jobId,
+            userId:user.id
+        }
+    })
+    
+    revalidatePath(`/job/${jobId}`)
+}
+
+export async function unSaveJobPost(savedJobPostId:string){
+    const user=await requireUser();
+    const req=await request();
+    const decision=await aj.protect(req)
+    if(decision.isDenied()){
+        throw new Error("Forbidden")
+    }
+    
+    const data=await prisma.savedJobPost.delete({
+        where:{
+            id:savedJobPostId,
+            userId:user.id
+        },
+        select:{
+            jobPostId:true
+        }
+    })
+    
+     revalidatePath(`/job/${data.jobPostId}`)}
+
+
+export async function editJobPost(data:z.infer<typeof jobSchema>,jobId:string){
+    const user=await requireUser()
+    const req=await request()
+    const decision=await aj.protect(req)
+    if(decision.isDenied()){
+        throw new Error("Forbidden")
+    }
+
+    const validateData=jobSchema.parse(data)
+    await prisma.jobPost.update({
+        where:{
+            id:jobId,
+            Company:{
+                userId:user.id
+            }
+        },
+        data:{
+            jobDescription:validateData.jobDescription,
+            jobTitle:validateData.jobTitle,
+            employmentType:validateData.employmentType,
+            location:validateData.location,
+            salaryFrom:validateData.salaryFrom,
+            salaryTo:validateData.salaryTo,
+            listingDuration:validateData.listingDuration,
+            benefits:validateData.benefits,
+            Company:{
+                update:{
+                    location:validateData.companyLocation
+                }
+            }
+        }
+    })
+
+    return redirect("/my-jobs")
+}
+
+
+export async function deleteJobPost(jobId:string){
+    const user=await requireUser()
+    const req=await request()
+    const decision=await aj.protect(req)
+    if(decision.isDenied()){
+        throw new Error("Forbidden")
+    }
+    await prisma.jobPost.delete({
+        where:{
+            id:jobId,
+            Company:{
+                userId:user.id
+            }
+        }
+    })
+    
+
+
+    return redirect("/my-jobs")
+}

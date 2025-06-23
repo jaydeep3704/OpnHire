@@ -5,8 +5,6 @@ import Image from 'next/image'
 import { Button, buttonVariants } from '../ui/button'
 import { ThemeToggle } from './ThemeToggle'
 import { auth } from '@/utils/auth'
-import { redirect } from 'next/navigation'
-import { signOut } from '@/utils/auth'
 import UserDropDown from './UserDropDown'
 
 
@@ -24,10 +22,10 @@ const Navbar = async () => {
 
             <div className='flex items-center gap-5'>
                 <ThemeToggle/>
-                 <Link href={"post-job"} className={buttonVariants({size:'lg'})}>Post Job</Link>
+                 <Link href={"/post-job"} className={buttonVariants({size:'lg'})}>Post Job</Link>
                 {
                     session?.user? <UserDropDown/> : (
-                        <Link href={'/login'} className={buttonVariants({variant:"outline",size:"lg"})}>
+                        <Link href={'/login'} className={buttonVariants({variant:"outline",size:"lg"})} prefetch={true}>
                             Login
                         </Link>
                     )
