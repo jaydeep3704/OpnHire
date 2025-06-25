@@ -3,7 +3,7 @@ import { prisma } from "@/utils/db"
 import { requireUser } from "@/utils/requireUser"
 import { redirect } from "next/navigation"
 
-export async function checkIfUserHasFinishedOnBoarding(userId:string){
+async function checkIfUserHasFinishedOnBoarding(userId:string){
   const user=await prisma.user.findUnique({
       where:{
         id:userId
