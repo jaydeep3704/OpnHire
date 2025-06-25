@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "inngest:dev": "pnpm dlx inngest-cli@latest dev"
+    "inngest:dev": "pnpm dlx inngest-cli@latest dev",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@arcjet/inspect": "1.0.0-beta.8",
