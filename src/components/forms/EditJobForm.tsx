@@ -180,7 +180,6 @@ export function EditJobForm({jobPost}:iAppProps){
                                 <FormControl>
                                     <SalaryRange
                                         control={form.control}
-                                        currency="USD"
                                         minSalary={10000}
                                         maxSalary={1000000}
                                         step={2000}
