@@ -38,7 +38,7 @@ export default async function FavouritesPage(){
 
     const user=await requireUser()
     const data=await getFavourites(user.id)
-    console.log(data)
+
     {
         if(data.length===0){
             return <EmptyState title="No Favourites found" description="You don't have any favourites yet" buttonText="Find a job" href="/"/>

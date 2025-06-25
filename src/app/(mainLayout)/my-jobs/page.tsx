@@ -49,7 +49,7 @@ export default async function JobListings() {
     
         const user=await requireUser()
         const data=await getJobs(user.id)
-        console.log(data)
+
         {
              return (data.length===0) ?
                  <EmptyState title="No Job Posts found" description="You don't have any job posts yet" buttonText="Create a job post now!" href="/post-job"/>:

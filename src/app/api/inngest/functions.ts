@@ -17,7 +17,12 @@ interface JobWithCompany {
 
 
 export const handleJobExpiration = inngest.createFunction(
-    { id: "expire-job" },
+    { id: "expire-job" ,cancelOn:[
+        {
+            event:"job/cancel.expiration",
+            if:"event.data.jobId==async.data.jobId"
+        }
+    ]},
     { event: 'job/created' },
     async ({ event, step }) => {
         const { jobId, expirationDays } = event.data

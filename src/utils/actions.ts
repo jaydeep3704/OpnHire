@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { requireUser } from "./requireUser";
-import { string, z } from "zod"
+import {  z } from "zod"
 import { companySchema, jobSchema, jobSeekerSchema } from "./zodSchema";
 import { prisma } from "./db";
 import arcjet, { detectBot, shield } from "./arcjet";
@@ -294,7 +294,12 @@ export async function deleteJobPost(jobId:string){
         }
     })
     
-
+    await inngest.send({
+        name:'job/cancel.expiration',
+        data:{
+            jobId:jobId
+        }
+    })
 
     return redirect("/my-jobs")
 }
