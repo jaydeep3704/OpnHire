@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Card, CardHeader } from "../ui/card";
-import { MapIcon, MapPin, User2 } from "lucide-react";
+import { MapPin } from "lucide-react";
 import Image from "next/image";
 import { Badge } from "../ui/badge";
 import { formatCurrency } from "@/utils/formatCurrency";

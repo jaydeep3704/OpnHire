@@ -132,7 +132,7 @@ export default async function PostJobPage() {
                                     testimonials.map((testemonial,index)=>(
                                         <blockquote key={index} className="border-l-2 border-primary pl-4">
                                             <p className="text-sm text-muted-foreground italic">
-                                            "{testemonial.quote}"
+                                            &quot;{testemonial.quote}&quot;
                                             </p>
                                             <footer className="mt-2 text-sm font-medium">
                                                 -{testemonial.author},{testemonial.company}

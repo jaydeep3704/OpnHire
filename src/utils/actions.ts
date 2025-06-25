@@ -68,7 +68,7 @@ export async function createJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
         throw new Error("Forbidden")
     }
     
-    const jobSeeker=await prisma.user.update({
+    await prisma.user.update({
         where: {
             id: user.id as string
         },

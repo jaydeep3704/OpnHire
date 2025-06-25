@@ -8,7 +8,7 @@ import { prisma } from "@/utils/db";
 import { Heart } from "lucide-react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import arcjet, { detectBot, fixedWindow, tokenBucket } from "@/utils/arcjet";
+import arcjet, { detectBot, tokenBucket } from "@/utils/arcjet";
 import { request } from "@arcjet/next";
 import { auth } from "@/utils/auth";
 import Link from "next/link";

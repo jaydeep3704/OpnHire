@@ -1,4 +1,3 @@
-import { Card, CardHeader, CardTitle } from "../ui/card";
 import { prisma } from "@/utils/db";
 import { EmptyState } from "./EmptyState";
 import { JobCard } from "./JobCard";

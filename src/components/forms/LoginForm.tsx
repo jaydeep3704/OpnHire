@@ -1,6 +1,5 @@
 import { auth, signIn } from "@/utils/auth";
-import { Button } from "../ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import * as React from "react";
 import type { SVGProps } from "react";
 import { GeneralSubmitButton } from "../general/SubmitButton";

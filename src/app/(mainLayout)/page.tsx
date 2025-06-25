@@ -1,7 +1,6 @@
 import { JobFilters } from "@/components/general/JobFilters"
 import { JobListings } from "@/components/general/JobListings"
 import { JobListingLoading } from "@/components/general/skeleton/JobListingLoading"
-import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { Suspense } from "react"
 type searchParams={
   searchParams:Promise<{

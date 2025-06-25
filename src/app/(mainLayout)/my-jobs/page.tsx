@@ -1,13 +1,12 @@
 import { CopyLinkMenuItem } from "@/components/general/CopyLinkMenuItem";
 import { EmptyState } from "@/components/general/EmptyState";
-import { JobCard } from "@/components/general/JobCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { TableHead, TableHeader, TableRow ,Table, TableBody, TableCell} from "@/components/ui/table";
 import { prisma } from "@/utils/db"
 import { requireUser } from "@/utils/requireUser"
-import { CopyCheckIcon, MoreHorizontal,PenBoxIcon, XCircle } from "lucide-react";
+import {  MoreHorizontal,PenBoxIcon, XCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 

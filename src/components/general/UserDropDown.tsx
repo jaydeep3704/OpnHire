@@ -2,7 +2,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup,DropdownMenuItem, 
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { auth, signOut } from "@/utils/auth";
 import { Button } from "../ui/button";
-import { ChevronDown, Heart, Layers2, LogOut, LogOutIcon } from "lucide-react";
+import { ChevronDown, Heart, Layers2, LogOut } from "lucide-react";
 
 import Link from "next/link";
 export default async function UserDropDown(){

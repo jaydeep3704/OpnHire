@@ -9,11 +9,9 @@ interface salaryRangeProps{
     minSalary:number,
     control:Control,
     step:number,
-    currency:string,
-
 }
 
-export default function SalaryRange({maxSalary,minSalary,control,step,currency}:salaryRangeProps ) {
+export default function SalaryRange({maxSalary,minSalary,control,step}:salaryRangeProps ) {
 
   const {field:fromField}=useController({
     name:'salaryFrom',
