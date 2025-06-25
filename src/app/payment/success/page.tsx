@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { requireUser } from "@/utils/requireUser";
 import { Check } from "lucide-react";
 import Link from "next/link";
 
-export default function PaymentSuccess(){
+export default async function PaymentSuccess(){
+    await requireUser()
     return(
         <div className="w-full min-h-screen flex flex-1 justify-center items-center">
             <Card className="w-[350px]"> 
