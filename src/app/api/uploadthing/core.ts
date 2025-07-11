@@ -1,3 +1,4 @@
+import { inngest } from "@/utils/inngest/client";
 import { requireUser } from "@/utils/requireUser";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
@@ -34,11 +35,11 @@ export const ourFileRouter = {
     }),
 
     resumeUploader: f({
-    "application/pdf":{
-      maxFileCount:1,
-      maxFileSize:"2MB"
+    pdf:{
+      maxFileSize:"8MB",
+      maxFileCount:1
     }
-  })
+  },{awaitServerData:true})
     // Set permissions and file types for this FileRoute
     .middleware(async () => {
       // This code runs on your server before upload
@@ -50,13 +51,9 @@ export const ourFileRouter = {
       return { userId: session.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      // This code RUNS ON YOUR SERVER after upload
-      console.log("Upload complete for userId:", metadata.userId);
-
-      console.log("file url", file.ufsUrl);
-
+      const {userId}=metadata
       // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
-      return { uploadedBy: metadata.userId };
+      return { message: "Resume uploaded" };
     })
 
 

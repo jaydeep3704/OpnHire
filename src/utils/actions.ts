@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { requireUser } from "./requireUser";
-import {  z } from "zod"
+import { z } from "zod"
 import { companySchema, jobSchema, jobSeekerSchema } from "./zodSchema";
 import { prisma } from "./db";
 import arcjet, { detectBot, shield } from "./arcjet";
@@ -11,6 +11,7 @@ import { stripe } from "./stripe";
 import { jobListingDurationPricing } from "./jobListingDurationSelector";
 import { inngest } from "./inngest/client";
 import { revalidatePath } from "next/cache";
+import { uploadthing } from "./uploadThing/client";
 
 
 const aj = arcjet.withRule(
@@ -67,7 +68,7 @@ export async function createJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
     if (decision.isDenied()) {
         throw new Error("Forbidden")
     }
-    
+
     await prisma.user.update({
         where: {
             id: user.id as string
@@ -79,17 +80,26 @@ export async function createJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
                 create: {
                     name: validatedData.name,
                     about: validatedData.about,
-                    resume: validatedData.resume
+                    resume: validatedData.resume,
+                    resumeFileKey: validatedData.resumeFileKey
                 }
             }
         }
     })
 
     await inngest.send({
-        name:"jobseeker/created",
-        data:{
-            userId:user.id,
-            email:user.email
+        name: 'resume/uploaded',
+        data: {
+            resumeUrl: validatedData.resume,
+            userId:user.id
+        }
+    })
+
+    await inngest.send({
+        name: "jobseeker/created",
+        data: {
+            userId: user.id,
+            email: user.email
         }
     })
     return redirect("/")
@@ -104,171 +114,172 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
     if (decision.isDenied()) {
         throw new Error("Forbidden")
     }
-    const company=await prisma.company.findUnique({
-        where:{
-            userId:user.id
+    const company = await prisma.company.findUnique({
+        where: {
+            userId: user.id
         },
-        select:{
-            id:true,
-            user:{
-                select:{
-                    stripeCustomerId:true
+        select: {
+            id: true,
+            user: {
+                select: {
+                    stripeCustomerId: true
                 }
             }
-            
+
         }
     })
 
 
-    
-    if(!company?.id){
+
+    if (!company?.id) {
         return redirect("/")
     }
 
-    let stripeCustomerId=company.user.stripeCustomerId
-    if(!stripeCustomerId){
-        const customer=await stripe.customers.create({
-            email:user.email,
-            name:user.name
+    let stripeCustomerId = company.user.stripeCustomerId
+    if (!stripeCustomerId) {
+        const customer = await stripe.customers.create({
+            email: user.email,
+            name: user.name
         })
-        stripeCustomerId=customer.id
+        stripeCustomerId = customer.id
         //update use with customer id
         await prisma.user.update({
-            where:{
-                id:user.id
+            where: {
+                id: user.id
             },
-            data:{
-                stripeCustomerId:stripeCustomerId
+            data: {
+                stripeCustomerId: stripeCustomerId
             }
         })
     }
 
-   const job= await prisma.jobPost.create({
-        data:{
-            jobTitle:validatedData.jobTitle,
-            jobDescription:validatedData.jobDescription,
-            employmentType:validatedData.employmentType,
-            location:validatedData.location,
-            salaryFrom:validatedData.salaryFrom,
-            salaryTo:validatedData.salaryTo,
-            listingDuration:validatedData.listingDuration,
-            benefits:validatedData.benefits,
-            companyId:company.id,
+    const job = await prisma.jobPost.create({
+        data: {
+            jobTitle: validatedData.jobTitle,
+            jobDescription: validatedData.jobDescription,
+            employmentType: validatedData.employmentType,
+            location: validatedData.location,
+            salaryFrom: validatedData.salaryFrom,
+            salaryTo: validatedData.salaryTo,
+            listingDuration: validatedData.listingDuration,
+            benefits: validatedData.benefits,
+            companyId: company.id,
         },
-        select:{
-            id:true
+        select: {
+            id: true
         }
     })
 
-    const pricingTier=jobListingDurationPricing.find((tier)=>tier.days===validatedData.listingDuration)
-    if(!pricingTier){
+    const pricingTier = jobListingDurationPricing.find((tier) => tier.days === validatedData.listingDuration)
+    if (!pricingTier) {
         throw new Error("Invalid Listing Duration")
-    }    
+    }
     await inngest.send({
-        name:'job/created',
-        data:{
-            jobId:job.id,
-            expirationDays:validatedData.listingDuration
+        name: 'job/created',
+        data: {
+            jobId: job.id,
+            expirationDays: validatedData.listingDuration
         }
     })
 
-    const session=await stripe.checkout.sessions.create({
-        customer:stripeCustomerId,
-        line_items:[
+    const session = await stripe.checkout.sessions.create({
+        customer: stripeCustomerId,
+        line_items: [
             {
-                price_data:{
-                    product_data:{
-                        name:`Job Posting - ${pricingTier.days} Days`,
-                        description:pricingTier.description,
-                        images:[
+                price_data: {
+                    product_data: {
+                        name: `Job Posting - ${pricingTier.days} Days`,
+                        description: pricingTier.description,
+                        images: [
                             "https://7kf49zim2e.ufs.sh/f/AZ2bzpFK1goDc2sAPVWBTgM8XE74obUVJK6ZepvudwasqDt0"
                         ]
                     },
-                    currency:'USD',
-                    unit_amount:pricingTier.price*100,
+                    currency: 'USD',
+                    unit_amount: pricingTier.price * 100,
                 },
-                quantity:1,
+                quantity: 1,
             }
         ],
-        metadata:{
-            jobId:job.id
+        metadata: {
+            jobId: job.id
         },
-        mode:'payment',
-        success_url:`${process.env.NEXT_PUBLIC_URL}/payment/success`,
-        cancel_url:`${process.env.NEXT_PUBLIC_URL}/payment/cancel`
+        mode: 'payment',
+        success_url: `${process.env.NEXT_PUBLIC_URL}/payment/success`,
+        cancel_url: `${process.env.NEXT_PUBLIC_URL}/payment/cancel`
     })
 
     return redirect(session.url as string)
 }
 
 
-export async function saveJobPost(jobId:string){
-    const user=await requireUser();
-    const req=await request();
-    const decision=await aj.protect(req)
-    if(decision.isDenied()){
+export async function saveJobPost(jobId: string) {
+    const user = await requireUser();
+    const req = await request();
+    const decision = await aj.protect(req)
+    if (decision.isDenied()) {
         throw new Error("Forbidden")
     }
-    
+
     await prisma.savedJobPost.create({
-        data:{
-            jobPostId:jobId,
-            userId:user.id
+        data: {
+            jobPostId: jobId,
+            userId: user.id
         }
     })
-    
+
     revalidatePath(`/job/${jobId}`)
 }
 
-export async function unSaveJobPost(savedJobPostId:string){
-    const user=await requireUser();
-    const req=await request();
-    const decision=await aj.protect(req)
-    if(decision.isDenied()){
+export async function unSaveJobPost(savedJobPostId: string) {
+    const user = await requireUser();
+    const req = await request();
+    const decision = await aj.protect(req)
+    if (decision.isDenied()) {
         throw new Error("Forbidden")
     }
-    
-    const data=await prisma.savedJobPost.delete({
-        where:{
-            id:savedJobPostId,
-            userId:user.id
+
+    const data = await prisma.savedJobPost.delete({
+        where: {
+            id: savedJobPostId,
+            userId: user.id
         },
-        select:{
-            jobPostId:true
+        select: {
+            jobPostId: true
         }
     })
-    
-     revalidatePath(`/job/${data.jobPostId}`)}
+
+    revalidatePath(`/job/${data.jobPostId}`)
+}
 
 
-export async function editJobPost(data:z.infer<typeof jobSchema>,jobId:string){
-    const user=await requireUser()
-    const req=await request()
-    const decision=await aj.protect(req)
-    if(decision.isDenied()){
+export async function editJobPost(data: z.infer<typeof jobSchema>, jobId: string) {
+    const user = await requireUser()
+    const req = await request()
+    const decision = await aj.protect(req)
+    if (decision.isDenied()) {
         throw new Error("Forbidden")
     }
 
-    const validateData=jobSchema.parse(data)
+    const validateData = jobSchema.parse(data)
     await prisma.jobPost.update({
-        where:{
-            id:jobId,
-            Company:{
-                userId:user.id
+        where: {
+            id: jobId,
+            Company: {
+                userId: user.id
             }
         },
-        data:{
-            jobDescription:validateData.jobDescription,
-            jobTitle:validateData.jobTitle,
-            employmentType:validateData.employmentType,
-            location:validateData.location,
-            salaryFrom:validateData.salaryFrom,
-            salaryTo:validateData.salaryTo,
-            listingDuration:validateData.listingDuration,
-            benefits:validateData.benefits,
-            Company:{
-                update:{
-                    location:validateData.companyLocation
+        data: {
+            jobDescription: validateData.jobDescription,
+            jobTitle: validateData.jobTitle,
+            employmentType: validateData.employmentType,
+            location: validateData.location,
+            salaryFrom: validateData.salaryFrom,
+            salaryTo: validateData.salaryTo,
+            listingDuration: validateData.listingDuration,
+            benefits: validateData.benefits,
+            Company: {
+                update: {
+                    location: validateData.companyLocation
                 }
             }
         }
@@ -278,28 +289,65 @@ export async function editJobPost(data:z.infer<typeof jobSchema>,jobId:string){
 }
 
 
-export async function deleteJobPost(jobId:string){
-    const user=await requireUser()
-    const req=await request()
-    const decision=await aj.protect(req)
-    if(decision.isDenied()){
+export async function deleteJobPost(jobId: string) {
+    const user = await requireUser()
+    const req = await request()
+    const decision = await aj.protect(req)
+    if (decision.isDenied()) {
         throw new Error("Forbidden")
     }
     await prisma.jobPost.delete({
-        where:{
-            id:jobId,
-            Company:{
-                userId:user.id
+        where: {
+            id: jobId,
+            Company: {
+                userId: user.id
             }
         }
     })
-    
+
     await inngest.send({
-        name:'job/cancel.expiration',
-        data:{
-            jobId:jobId
+        name: 'job/cancel.expiration',
+        data: {
+            jobId: jobId
         }
     })
 
     return redirect("/my-jobs")
+}
+
+
+export async function uploadResume(url: string, key: string) {
+    const user = await requireUser()
+    const req = await request()
+    const decision = await aj.protect(req)
+    if (decision.isDenied()) {
+        throw new Error("Forbidden")
+    }
+    const existingJobSeeker = await prisma.jobSeeker.findUnique({ where: { userId: user.id } })
+    if (existingJobSeeker.resumeFileKey !== null) {
+        uploadthing.deleteFiles(existingJobSeeker.resumeFileKey)
+    }
+
+    const updatedJobSeeker = await prisma.jobSeeker.update({
+        where: {
+            userId: user.id
+        },
+        data: {
+            resume: url,
+            resumeFileKey: key
+        }
+    })
+
+
+
+    if (updatedJobSeeker) {
+        await inngest.send({
+            name: 'resume/uploaded',
+            data: {
+                resumeUrl: updatedJobSeeker.resume,
+                userId:updatedJobSeeker.userId
+            }
+        })
+    }
+
 }

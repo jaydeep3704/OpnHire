@@ -51,7 +51,7 @@ export function JobFilters() {
         <Card className="col-span-1 h-fit">
             <CardHeader className="flex justify-between items-center">
                 <CardTitle className="text-2xl font-semibold">Filters</CardTitle>
-                <Button variant="destructive" size="sm" className="h-8 flex items-center" onClick={clearAllFilters}>
+                <Button variant="default" size="sm" className="h-8 flex items-center" onClick={clearAllFilters}>
                     <span>Clear all</span>
                     <XIcon />
                 </Button>

@@ -21,15 +21,18 @@ export default function JobSeekerForm() {
         defaultValues: {
             name: '',
             about: '',
-            resume: ''
+            resume: '',
+            resumeFileKey:''
         }
     })
     const [pending,setPending]=useState<boolean>(false)
-    
+    const [resumeFileKey,setResumeFileKey]=useState<null | string>(null)
     const onSubmit=async(data:z.infer<typeof jobSeekerSchema>)=>{
         try {
             setPending(true)
             await createJobSeeker(data)
+            
+
         } 
         catch (error) {
              if (error instanceof Error && error.message !== 'NEXT_REDIRECT') {
@@ -111,6 +114,7 @@ export default function JobSeekerForm() {
                                                         endpoint="resumeUploader"
                                                         onClientUploadComplete={(res) => {
                                                             console.log(res[0].url)
+                                                            form.setValue('resumeFileKey',res[0].key)
                                                             field.onChange(res[0].ufsUrl)
                                                         }}
                                                         onUploadError={() => console.log("Something went wrong")}

@@ -1,3 +1,4 @@
+
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup,DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { auth, signOut } from "@/utils/auth";
@@ -5,9 +6,10 @@ import { Button } from "../ui/button";
 import { ChevronDown, Heart, Layers2, LogOut } from "lucide-react";
 
 import Link from "next/link";
+import { getCurrentUser } from "@/utils/currentUser";
 export default async function UserDropDown(){
-    const session=await auth()
-    const user=session.user
+    
+    const user=await getCurrentUser()
     return(
         <DropdownMenu>
             <DropdownMenuTrigger asChild >
@@ -34,15 +36,15 @@ export default async function UserDropDown(){
                              </span>
                          </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
+                   {user.userType!=="JOB_SEEKER" && <DropdownMenuItem asChild>
                          <Link href={"/my-jobs"} >
                              <Layers2 size={16} strokeWidth={2} className="opacity-60"/>
                              <span>
                               My Job Listings
                              </span>
                          </Link>
-                    </DropdownMenuItem>
-
+                    </DropdownMenuItem>}
+                    
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator/>
                  <DropdownMenuItem asChild>

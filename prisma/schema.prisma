@@ -56,10 +56,13 @@ model JobSeeker {
   name      String
   about     String
   resume    String
+  resumeFileKey  String?
+  resumeAiSummary String?
   userId    String   @unique
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  JobApplications JobApplication[]
 }
 
 model Account {
@@ -117,6 +120,7 @@ model JobPost {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   SavedJobPost    SavedJobPost[]
+  JobApplications JobApplication[]
 }
 
 enum JobPostStatus {
@@ -127,11 +131,22 @@ enum JobPostStatus {
 
 model SavedJobPost {
   id        String  @id @default(uuid())
-  JobPost   JobPost @relation(fields: [jobPostId], references: [id])
+  JobPost   JobPost @relation(fields: [jobPostId], references: [id],onDelete:Cascade)
   jobPostId String
   User      User?   @relation(fields: [userId], references: [id])
   userId    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@unique([userId,jobPostId])
+}
+
+
+model JobApplication{
+   id String @id @default(uuid())
+   JobPost JobPost @relation(fields: [jobPostId],references: [id],onDelete:Cascade)
+   jobPostId String 
+   jobSeekerId String
+   JobSeeker JobSeeker? @relation(fields: [jobSeekerId],references: [id])
+   createdAt DateTime @default(now())
+   updatedAt DateTime @updatedAt
 }

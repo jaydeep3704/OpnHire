@@ -1,6 +1,8 @@
 import { prisma } from "@/utils/db";
 import { inngest } from "../../../utils/inngest/client";
 import { Resend } from "resend";
+import { extractTextFromPdf } from "@/utils/pdfParser";
+
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -17,12 +19,14 @@ interface JobWithCompany {
 
 
 export const handleJobExpiration = inngest.createFunction(
-    { id: "expire-job" ,cancelOn:[
-        {
-            event:"job/cancel.expiration",
-            if:"event.data.jobId==async.data.jobId"
-        }
-    ]},
+    {
+        id: "expire-job", cancelOn: [
+            {
+                event: "job/cancel.expiration",
+                if: "event.data.jobId==async.data.jobId"
+            }
+        ]
+    },
     { event: 'job/created' },
     async ({ event, step }) => {
         const { jobId, expirationDays } = event.data
@@ -108,6 +112,69 @@ export const sendPeriodicJobListings = inngest.createFunction(
 
             }
         }
-        return {userId,message:"Completed 30 day job Listing notifications"}
+        return { userId, message: "Completed 30 day job Listing notifications" }
     }
 )
+
+
+
+export const getAiResumeSummary = inngest.createFunction(
+    {
+        id: "create-ai-resume",
+        name: "Create AI summary of uploaded resume"
+    },
+
+    { event: "resume/uploaded" },
+    async ({ event, step }) => {
+        const { resumeUrl, userId } = event.data
+
+        if (!resumeUrl) return
+
+        const pdfText = await extractTextFromPdf(resumeUrl)
+        const prompt = `Act as a professional resume summarizer. Analyze the following resume extracted from a PDF:
+
+${pdfText.toString()}
+
+Summarize the resume in clear, concise markdown format, highlighting only the most important information:
+- **Key Skills** (list format)
+- **Education** (degree, institution, year)
+- **Projects** (short one-line description for each)
+- **Achievements** (bullet points if available)
+
+Keep the summary brief and focused. Do not add extra commentary, explanations, or introductory text. If the text does not resemble a resume, return:
+"This text does not appear to be a resume."`
+
+        const result = await step.ai.infer("create-ai-summary", {
+            model: step.ai.models.gemini({
+                model: 'gemini-2.0-flash',
+                apiKey: process.env.GEMINI_API_KEY
+            }),
+            body: {
+                contents: [
+                    {
+                        role: 'user',
+                        parts: [{
+                            text: prompt,
+                        }],
+                    }
+                ]
+            }
+        })
+        if (result) {
+            await step.run('save-ai-summary', async () => {
+                const summaryText = result?.candidates?.[0]?.content?.parts[0]["text"] ?? '';
+                await prisma.jobSeeker.update({
+                    where: {
+                        userId: userId
+                    },
+                    data: {
+                        resumeAiSummary: summaryText.toString()
+                    }
+                })
+            })
+        }
+        return { success: true, result, message: "AI Summary for resume generated" }
+
+    }
+)
+

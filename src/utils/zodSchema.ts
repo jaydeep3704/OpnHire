@@ -14,7 +14,8 @@ export const companySchema=z.object({
 export const jobSeekerSchema=z.object({
     name:z.string().min(2,"Name must be atleast 2 characters long"),
     about:z.string().min(10,"Please provide some information about yourself"),
-    resume:z.string().min(1,"Please upload your resume")
+    resume:z.string().min(1,"Please upload your resume"),
+    resumeFileKey:z.string().min(1)
     
 })
 

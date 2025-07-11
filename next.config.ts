@@ -1,23 +1,33 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  eslint:{
-    ignoreDuringBuilds:true
+  eslint: {
+    ignoreDuringBuilds: true
+  },
+  devIndicators:{
+    position:'bottom-right'
   },
   /* config options here */
-  images:{
-    remotePatterns:[
+  images: {
+    remotePatterns: [
       {
-        hostname:"utfs.io",
-        port:"",
-        protocol:"https"
+        hostname: "utfs.io",
+        port: "",
+        protocol: "https"
       },
       {
-        hostname:"7kf49zim2e.ufs.sh",
-        protocol:"https"
+        hostname: "7kf49zim2e.ufs.sh",
+        protocol: "https"
       },
-      
+
     ]
+  },
+  webpack: (config) => {
+    config.module.rules.push({
+      test: /\.node/,
+      use: "raw-loader",
+    });
+    return config;
   }
 };
 

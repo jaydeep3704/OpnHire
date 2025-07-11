@@ -14,6 +14,7 @@ import { auth } from "@/utils/auth";
 import Link from "next/link";
 import { SaveJobButton } from "@/components/general/SubmitButton";
 import { saveJobPost, unSaveJobPost } from "@/utils/actions";
+import { getCurrentUser } from "@/utils/currentUser";
 
 
 const aj = arcjet.withRule(detectBot({
@@ -104,7 +105,7 @@ export default async function JobPage({ params }: { params: Params }) {
   const { jobId } = await params;
   const req = await request()
   const session = await auth()
-
+  const user=await getCurrentUser()
   const decision = await getClient(!!session).protect(req, { requested: 10 })
 
   if (decision.isDenied()) {
@@ -195,7 +196,9 @@ export default async function JobPage({ params }: { params: Params }) {
                 This helps us grow!
               </p>
             </div>
-            <Button className="w-full">Apply Now</Button>
+            
+           {user.userType==="JOB_SEEKER" && <Link  href={`/apply/${jobId}`}  className={cn(buttonVariants({variant:'default'}),'w-full')}>Apply Now</Link>}
+            
           </div>
         </Card>
 
