@@ -13,7 +13,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "types": ["react"],
+    "types": ["react","node"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
