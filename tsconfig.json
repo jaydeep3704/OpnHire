@@ -12,14 +12,13 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
-    "baseUrl": ".",                      // <--- Add this
-    "paths": {                          // <--- Add this
+    "jsx": "react-jsx",                        // ✅ Fixed: Required for React 17+ and fixes JSX error
+    "types": ["react"],                       // ✅ Ensures JSX types are available
+    "baseUrl": ".",                           // ✅ Path alias support
+    "paths": {
       "@/*": ["src/*"]
     },
-    "plugins": [
-      { "name": "next" }
-    ]
+    "plugins": [{ "name": "next" }]
   },
   "include": [
     "next-env.d.ts",
