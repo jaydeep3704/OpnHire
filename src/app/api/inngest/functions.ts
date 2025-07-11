@@ -2,6 +2,7 @@ import { prisma } from "@/utils/db";
 import { inngest } from "../../../utils/inngest/client";
 import { Resend } from "resend";
 import { extractTextFromPdf } from "@/utils/pdfParser";
+import { revalidatePath } from "next/cache";
 
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -135,14 +136,29 @@ export const getAiResumeSummary = inngest.createFunction(
 
 ${pdfText.toString()}
 
-Summarize the resume in clear, concise markdown format, highlighting only the most important information:
-- **Key Skills** (list format)
-- **Education** (degree, institution, year)
-- **Projects** (short one-line description for each)
-- **Achievements** (bullet points if available)
+Summarize the resume strictly in markdown format, highlighting only the most important information under the following sections:
 
-Keep the summary brief and focused. Do not add extra commentary, explanations, or introductory text. If the text does not resemble a resume, return:
-"This text does not appear to be a resume."`
+## Description about Candidate
+- Short two-line description.
+
+## Key Skills
+- List of key skills.
+
+## Education
+- Degree, institution, and year.
+
+## Projects
+- One-line description for each project.
+
+## Achievements
+- Bullet points of achievements (if available).
+
+Do not add extra commentary, explanation, or introductory text. Return only valid markdown content as output.
+
+If the provided text does not resemble a resume, respond exactly with:
+"This text does not appear to be a resume."
+`;
+
 
         const result = await step.ai.infer("create-ai-summary", {
             model: step.ai.models.gemini({
@@ -171,6 +187,7 @@ Keep the summary brief and focused. Do not add extra commentary, explanations, o
                         resumeAiSummary: summaryText.toString()
                     }
                 })
+
             })
         }
         return { success: true, result, message: "AI Summary for resume generated" }

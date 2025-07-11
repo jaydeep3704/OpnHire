@@ -24,7 +24,7 @@ async function getJobSeekerInfo(userId:string,userType:string){
 }
 
 
-export default async function ReumsePage(){
+export default async function ResumePage(){
     const user=await getCurrentUser()
     const jobSeeker=await getJobSeekerInfo(user.id,user.userType)
     

@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   devIndicators:{
     position:'bottom-right'
   },
+  
   /* config options here */
   images: {
     remotePatterns: [
