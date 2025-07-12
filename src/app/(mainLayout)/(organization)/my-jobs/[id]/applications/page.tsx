@@ -9,7 +9,7 @@ import { MoreHorizontal, UserX } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
-export async function getApplications(jobId: string) {
+ async function getApplications(jobId: string) {
     try {
         const applications = await prisma.jobApplication.findMany({
             where: {
