@@ -227,7 +227,7 @@ export default async function JobPage({ params }: { params: Params }) {
               </p>
             </div>
             
-           {user.userType==="JOB_SEEKER" && 
+           {user && user.userType==="JOB_SEEKER" && 
            appliedDate!==null ? 
            (<p className="text-sm  font-semibold">{formatAppliedTime(appliedDate)}</p>):
            (<Link  href={`/apply/${jobId}`}  className={cn(buttonVariants({variant:'default'}),'w-full')}>Apply Now</Link>)}
