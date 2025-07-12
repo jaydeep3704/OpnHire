@@ -33,7 +33,7 @@ export default async function ApplyPage({params}:{params:Promise<{jobId?:string}
     const {jobId}=await params
     const user = await getCurrentUser()
     const jobSeeker = await getJobSeekerInfo(user.id, user.userType)
-
+    
 
     return (
         <div className="grid grid-cols-1 gap-6">

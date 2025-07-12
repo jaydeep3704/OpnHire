@@ -13,8 +13,6 @@ interface User {
 // Overloads
 export async function getCurrentUser(): Promise<User>
 export async function getCurrentUser(options: { redirectOnFail: false }): Promise<User | null>
-
-// Implementation
 export async function getCurrentUser(options?: { redirectOnFail?: boolean }): Promise<User | null> {
   const redirectOnFail = options?.redirectOnFail ?? true
   const session = await auth()

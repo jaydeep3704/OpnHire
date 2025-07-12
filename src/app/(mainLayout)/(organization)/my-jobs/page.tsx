@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { TableHead, TableHeader, TableRow ,Table, TableBody, TableCell} from "@/components/ui/table";
 import { prisma } from "@/utils/db"
 import { requireUser } from "@/utils/requireUser"
-import {  MoreHorizontal,PenBoxIcon, XCircle } from "lucide-react";
+import {  EyeIcon, MoreHorizontal,PenBoxIcon, XCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -111,6 +111,12 @@ export default async function JobListings() {
                                                         <Link href={`/my-jobs/${listing.id}/delete`}>
                                                             <XCircle/>
                                                             Delete Job
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem asChild>
+                                                        <Link href={`/my-jobs/${listing.id}/applications`}>
+                                                            <EyeIcon/>
+                                                            View applications
                                                         </Link>
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
