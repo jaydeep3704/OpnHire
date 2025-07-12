@@ -149,4 +149,6 @@ model JobApplication{
    JobSeeker JobSeeker? @relation(fields: [jobSeekerId],references: [id])
    createdAt DateTime @default(now())
    updatedAt DateTime @updatedAt
+   @@unique([jobSeekerId, jobPostId])
+
 }

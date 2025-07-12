@@ -15,7 +15,7 @@ import Link from "next/link";
 import { SaveJobButton } from "@/components/general/SubmitButton";
 import { saveJobPost, unSaveJobPost } from "@/utils/actions";
 import { getCurrentUser } from "@/utils/currentUser";
-
+import { formatAppliedTime } from "@/utils/formatRelativeTime";
 
 const aj = arcjet.withRule(detectBot({
   mode: "LIVE",
@@ -67,6 +67,7 @@ async function getJob(jobId: string,userId?:string) {
       createdAt: true,
       updatedAt: true,
       listingDuration: true,
+      JobApplications:true,
       Company: {
         select: {
           name: true,
@@ -99,15 +100,42 @@ async function getJob(jobId: string,userId?:string) {
   }
 }
 
+async function getAppliedDate(jobId: string, userId: string) {
+  const jobSeeker = await prisma.jobSeeker.findUnique({
+    where: { userId },
+    select: { id: true }
+  });
+
+  if (!jobSeeker) return null;
+
+  const jobApplication = await prisma.jobApplication.findUnique({
+    where: {
+      jobSeekerId_jobPostId: {
+        jobSeekerId: jobSeeker.id,
+        jobPostId: jobId
+      }
+    },
+    select: {
+      createdAt: true
+    }
+  });
+
+  return jobApplication?.createdAt || null;
+}
+
+
 type Params = Promise<{ jobId: string }>;
 
 export default async function JobPage({ params }: { params: Params }) {
   const { jobId } = await params;
   const req = await request()
   const session = await auth()
-  const user=await getCurrentUser()
+  const user=await getCurrentUser({redirectOnFail:false})
   const decision = await getClient(!!session).protect(req, { requested: 10 })
-
+  let appliedDate=null
+  if(user && user.userType=='JOB_SEEKER'){
+      appliedDate=await getAppliedDate(jobId,user.id)
+  }
   if (decision.isDenied()) {
     throw new Error("Forbidden")
   }
@@ -191,13 +219,18 @@ export default async function JobPage({ params }: { params: Params }) {
           <div className="space-y-4 ">
             <div>
               <h3 className="font-semibold">Apply Now</h3>
+              {data.JobApplications.length>1 && 
+              <p className="text-sm text-muted-foreground mt-1">{data.JobApplications.length} people already applied</p>}
               <p className="text-sm text-muted-foreground mt-1">
                 Please let {data.Company.name} know that you found this job on OpnHire.
                 This helps us grow!
               </p>
             </div>
             
-           {user.userType==="JOB_SEEKER" && <Link  href={`/apply/${jobId}`}  className={cn(buttonVariants({variant:'default'}),'w-full')}>Apply Now</Link>}
+           {user.userType==="JOB_SEEKER" && 
+           appliedDate!==null ? 
+           (<p className="text-sm  font-semibold">{formatAppliedTime(appliedDate)}</p>):
+           (<Link  href={`/apply/${jobId}`}  className={cn(buttonVariants({variant:'default'}),'w-full')}>Apply Now</Link>)}
             
           </div>
         </Card>

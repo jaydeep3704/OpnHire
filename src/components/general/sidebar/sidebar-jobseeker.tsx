@@ -10,7 +10,7 @@ const jobSeekerLinks:MenuItemProps[]=[
     {
         label:'My Applications',
         icon:Briefcase,
-        href:'/my-application'
+        href:'/my-applications'
     },
     {
         label:'Resume',

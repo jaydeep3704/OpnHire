@@ -134,30 +134,30 @@ export const getAiResumeSummary = inngest.createFunction(
         const pdfText = await extractTextFromPdf(resumeUrl)
         const prompt = `Act as a professional resume summarizer. Analyze the following resume extracted from a PDF:
 
-${pdfText.toString()}
+                        ${pdfText.toString()}
 
-Summarize the resume strictly in markdown format, highlighting only the most important information under the following sections:
+                        Summarize the resume strictly in markdown format, highlighting only the most important information under the following sections:
 
-## Description about Candidate
-- Short two-line description.
+                        ## Description about Candidate
+                        - Short two-line description.
 
-## Key Skills
-- List of key skills.
+                        ## Key Skills
+                        - List of key skills.
 
-## Education
-- Degree, institution, and year.
+                        ## Education
+                        - Degree, institution, and year.
 
-## Projects
-- One-line description for each project.
+                        ## Projects
+                        - One-line description for each project.
 
-## Achievements
-- Bullet points of achievements (if available).
+                        ## Achievements
+                        - Bullet points of achievements (if available).
 
-Do not add extra commentary, explanation, or introductory text. Return only valid markdown content as output.
+                        Do not add extra commentary, explanation, or introductory text. Return only valid markdown content as output.
 
-If the provided text does not resemble a resume, respond exactly with:
-"This text does not appear to be a resume."
-`;
+                        If the provided text does not resemble a resume, respond exactly with:
+                        "This text does not appear to be a resume."
+                        `;
 
 
         const result = await step.ai.infer("create-ai-summary", {
@@ -190,8 +190,26 @@ If the provided text does not resemble a resume, respond exactly with:
 
             })
         }
-        return { success: true, result, message: "AI Summary for resume generated" }
 
+        
+        return { success: true, result, message: "AI Summary for resume generated" }
     }
 )
+
+
+export const jobDescriptionMatcher=inngest.createFunction(
+    {
+        id:'jobdescription-matcher',
+        name:"Match Resume with Job Description",
+    },
+    {
+        event:'jobdescription/match'
+    },
+    async({event,step})=>{
+        const {resumeUrl,jobdescription}=event.data;
+        const pdfText = await extractTextFromPdf(resumeUrl)
+        
+    }
+)
+
 

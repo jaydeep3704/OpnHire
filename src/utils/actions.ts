@@ -91,7 +91,7 @@ export async function createJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
         name: 'resume/uploaded',
         data: {
             resumeUrl: validatedData.resume,
-            userId:user.id
+            userId: user.id
         }
     })
 
@@ -345,9 +345,47 @@ export async function uploadResume(url: string, key: string) {
             name: 'resume/uploaded',
             data: {
                 resumeUrl: updatedJobSeeker.resume,
-                userId:updatedJobSeeker.userId
+                userId: updatedJobSeeker.userId
             }
         })
     }
 
+}
+
+
+export async function createApplication(jobId: string) {
+  if (!jobId) throw new Error("Job ID is required")
+
+  const user = await requireUser()
+  const req = await request()
+  const decision = await aj.protect(req)
+
+  if (decision.isDenied()) {
+    throw new Error("Forbidden")
+  }
+
+  try {
+    const application = await prisma.jobSeeker.update({
+      where: { userId: user.id },
+      data: {
+        JobApplications: {
+          create: {
+            jobPostId: jobId,
+          },
+        },
+      },
+      select: {
+        JobApplications: {
+          where: { jobPostId: jobId },
+          orderBy: { createdAt: "desc" },
+          take:1
+        },
+      },
+    })
+
+    return {success:true,application:application.JobApplications[0],message:"job application created sucessfully"}
+  } catch (error) {
+    console.error("Failed to create job application:", error)
+    throw new Error("Something went wrong while applying to the job.")
+  }
 }

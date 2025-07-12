@@ -9,14 +9,16 @@ interface GeneralSubmitButtonProps{
     text:string;
     variant?: "link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined;
     width?:string;
-    icon?:ReactNode
+    icon?:ReactNode;
+    error?:string;
+    success?:string
 }
 
-export function GeneralSubmitButton({text,variant,width,icon}:GeneralSubmitButtonProps){
+export function GeneralSubmitButton({text,variant,width,icon,error,success}:GeneralSubmitButtonProps){
     const {pending}=useFormStatus()
 
     return(
-        <Button className={width} variant={variant} disabled={pending}>
+        <Button className={width} variant={variant} disabled={pending} >
             {pending ? (
                 <>
                  <Loader2 className="size-4 animate-spin"/>

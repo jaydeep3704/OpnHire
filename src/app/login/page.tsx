@@ -1,5 +1,4 @@
 import Link from "next/link"
-import Image from "next/image"
 import LoginForm from "@/components/forms/LoginForm"
 const page = () => {
   return (
